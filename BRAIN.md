@@ -1,4 +1,4 @@
-# 🧠 BRAIN.md — SentinelView Project Memory
+# 🧠 BRAIN.md — Argus Project Memory
 ### Last updated: 2026-09-11 | PS06 Hackathon — PPE/Fire Compliance Detection
 
 > **Purpose of this file:** Drop-in context for anyone joining, resuming, or reviewing this project.
@@ -9,7 +9,7 @@
 
 ## 🎯 What This Project Is
 
-**SentinelView** is an AI-powered safety compliance platform built for a hackathon (PS06).
+**Argus** is an AI-powered safety compliance platform built for a hackathon (PS06).
 
 It detects:
 - **PPE violations** (no helmet, no vest, no boots, no gloves, no goggles)

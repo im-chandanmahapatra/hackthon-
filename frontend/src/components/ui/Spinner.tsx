@@ -1,45 +1,26 @@
+import { Loader2 } from 'lucide-react';
+import { cn } from './Badge';
+
 interface SpinnerProps {
-  label?: string;
   size?: 'sm' | 'md' | 'lg';
+  className?: string;
 }
 
-const SIZE_MAP = { sm: 18, md: 32, lg: 48 };
+/** Small inline spinner using Lucide icon — for buttons, inline states */
+export function Spinner({ size = 'md', className }: SpinnerProps) {
+  const sizeMap = {
+    sm: 14,
+    md: 20,
+    lg: 28,
+  };
 
-export function Spinner({ label, size = 'md' }: SpinnerProps) {
-  const px = SIZE_MAP[size];
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-3)' }}>
-      <svg
-        width={px}
-        height={px}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="var(--accent-amber)"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        style={{ animation: 'spin 0.8s linear infinite' }}
-        aria-label="Loading"
-      >
-        <circle cx="12" cy="12" r="10" stroke="var(--bg-overlay)" strokeWidth="2.5" />
-        <path d="M12 2a10 10 0 0 1 10 10" />
-      </svg>
-      {label && (
-        <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 500 }}>
-          {label}
-        </span>
-      )}
-    </div>
+    <Loader2 
+      size={sizeMap[size]} 
+      className={cn("animate-spin text-muted", className)} 
+    />
   );
 }
 
-/** Full-page centered loading state */
-export function PageSpinner({ label = 'Loading…' }: { label?: string }) {
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      minHeight: '60vh', flexDirection: 'column', gap: 'var(--space-4)'
-    }}>
-      <Spinner size="lg" label={label} />
-    </div>
-  );
-}
+/** Full-page loading state with premium orbital spinner */
+export { PageSpinner } from './OrbitalSpinner';

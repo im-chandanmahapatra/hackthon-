@@ -1,6 +1,6 @@
 /**
  * ============================================================
- * SentinelView — Mock Data Fixtures
+ * Argus — Mock Data Fixtures
  * ============================================================
  * Realistic mock data for frontend development (P3) before
  * the real backend (P2) is ready.

@@ -4,30 +4,32 @@ import Dashboard from './pages/Dashboard';
 import Upload from './pages/Upload';
 import IncidentDetail from './pages/IncidentDetail';
 import Cameras from './pages/Cameras';
+import Settings from './pages/Settings';
+
+import { ToastProvider } from './hooks/useToast';
+import { ThemeProvider } from './components/ThemeProvider';
 
 /**
  * App — top-level router.
- *
- * Routes:
- *   /             → Dashboard (incident feed)
- *   /upload       → Upload video
- *   /incidents/:id → Incident detail
- *   /cameras      → Camera/zone list
- *   *             → Redirect to /
  */
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<AppLayout />}>
-          <Route path="/"              element={<Dashboard />} />
-          <Route path="/upload"        element={<Upload />} />
-          <Route path="/incidents/:id" element={<IncidentDetail />} />
-          <Route path="/cameras"       element={<Cameras />} />
-          {/* Catch-all → Dashboard */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <ThemeProvider defaultTheme="system">
+      <ToastProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route element={<AppLayout />}>
+              <Route path="/"              element={<Dashboard />} />
+              <Route path="/upload"        element={<Upload />} />
+              <Route path="/incidents/:id" element={<IncidentDetail />} />
+              <Route path="/cameras"       element={<Cameras />} />
+              <Route path="/settings"      element={<Settings />} />
+              {/* Catch-all → Dashboard */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </ToastProvider>
+    </ThemeProvider>
   );
 }

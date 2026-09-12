@@ -1,6 +1,6 @@
 /**
  * ============================================================
- * SentinelView — Shared API Types
+ * Argus — Shared API Types
  * ============================================================
  * SINGLE SOURCE OF TRUTH for data shapes between frontend & backend.
  *

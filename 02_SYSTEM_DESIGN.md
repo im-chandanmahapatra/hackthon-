@@ -1,5 +1,5 @@
 # 02 — SYSTEM DESIGN (MVP)
-### SentinelView — PS06 PPE/Fire Compliance Detection
+### Argus — PS06 PPE/Fire Compliance Detection
 
 **Source note:** Derived only from the Main Hackathon Blueprint (see Source of Truth). Where the missing PRD/Resources/Design files would normally supply detail, this is marked **[VERIFY]** or **[OPEN]**.
 
@@ -250,7 +250,7 @@ erDiagram
 ## G. Repository Structure
 
 ```
-sentinelview/
+argus/
 ├── frontend/           # React + TypeScript app (§F)
 ├── backend/             # FastAPI app (§D)
 ├── ml/

@@ -1,29 +1,25 @@
+import React from 'react';
+import { motion } from 'motion/react';
+
 interface EmptyStateProps {
-  icon?: string;
+  icon: React.ReactNode;
   title: string;
-  description?: string;
-  action?: React.ReactNode;
+  description: string;
 }
 
-export function EmptyState({ icon = '📭', title, description, action }: EmptyStateProps) {
+export function EmptyState({ icon, title, description }: EmptyStateProps) {
   return (
-    <div
-      style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-        justifyContent: 'center', padding: 'var(--space-12) var(--space-8)',
-        gap: 'var(--space-4)', textAlign: 'center', minHeight: 320,
-      }}
+    <motion.div
+      initial={{ opacity: 0, y: 12, filter: 'blur(4px)' }}
+      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+      className="flex flex-col items-center justify-center py-16 px-6 text-center"
     >
-      <span style={{ fontSize: '3rem', lineHeight: 1 }}>{icon}</span>
-      <div>
-        <h3 style={{ color: 'var(--text-primary)', marginBottom: 'var(--space-2)' }}>{title}</h3>
-        {description && (
-          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', maxWidth: 360 }}>
-            {description}
-          </p>
-        )}
+      <div className="flex items-center justify-center w-12 h-12 rounded-[var(--radius-md)] bg-surface-alt border border-default text-muted mb-4">
+        {icon}
       </div>
-      {action}
-    </div>
+      <h3 className="text-primary text-[15px] font-semibold mb-1">{title}</h3>
+      <p className="text-muted text-[13px] max-w-sm leading-relaxed">{description}</p>
+    </motion.div>
   );
 }

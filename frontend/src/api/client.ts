@@ -1,6 +1,6 @@
 /**
  * ============================================================
- * SentinelView — API Client
+ * Argus — API Client
  * ============================================================
  *
  * HOW TO SWITCH FROM MOCK → REAL BACKEND:

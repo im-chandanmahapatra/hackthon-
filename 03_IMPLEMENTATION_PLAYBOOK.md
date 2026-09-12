@@ -1,5 +1,5 @@
 # 03 — IMPLEMENTATION PLAYBOOK (MVP)
-### SentinelView — PS06 PPE/Fire Compliance Detection | 4-Person Team
+### Argus — PS06 PPE/Fire Compliance Detection | 4-Person Team
 
 **Priority order for this document:** WORKING > COMPLETE > RELIABLE > POLISHED > OPTIMIZED.
 

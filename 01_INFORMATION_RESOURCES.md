@@ -1,5 +1,5 @@
 # 01 — INFORMATION & RESOURCES (MVP)
-### SentinelView — PS06 PPE/Fire Compliance Detection
+### Argus — PS06 PPE/Fire Compliance Detection
 
 **Note on sourcing:** Only one of the four referenced files — the **Main Hackathon Blueprint** (`PS06_Final_Master_Hackathon_Blueprint.md`, generated earlier in this chat) — was actually supplied. The "Hackathon PRD," "Information/Resources Markdown," and "System/Design Markdown" were referenced but never uploaded. Everything below is derived from the Blueprint only. Anything the missing three files would normally confirm is marked **[VERIFY BEFORE USE]**.
 
