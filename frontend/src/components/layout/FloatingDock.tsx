@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { LayoutDashboard, UploadCloud, Video, Settings } from 'lucide-react';
+import { LayoutDashboard, Monitor, Video, Settings } from 'lucide-react';
 import { usePolling } from '../../hooks/usePolling';
 import { getIncidents } from '../../api/client';
 import { MorphingThemeToggle } from '../ui/MorphingThemeToggle';
@@ -10,7 +10,7 @@ import { cn } from '../ui/Badge';
 
 const NAV_ITEMS = [
   { path: '/', label: 'Overview', icon: LayoutDashboard },
-  { path: '/upload', label: 'Upload', icon: UploadCloud },
+  { path: '/video-intelligence', label: 'Video Intel', icon: Monitor },
   { path: '/cameras', label: 'Cameras', icon: Video },
   { path: '/settings', label: 'Settings', icon: Settings },
 ] as const;

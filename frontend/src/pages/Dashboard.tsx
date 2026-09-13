@@ -24,6 +24,14 @@ export default function Dashboard() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // ── Dynamic Unique Zones from Real Database ──
+  const uniqueZones = useMemo(() => {
+    const set = new Set<string>();
+    cameras?.forEach(c => set.add(c.zone_name));
+    incidents?.forEach(i => set.add(i.zone));
+    return Array.from(set).filter(Boolean);
+  }, [cameras, incidents]);
+
   // ── Derived Real API Metrics ──
   const stats = useMemo(() => {
     if (!incidents) return null;
@@ -31,66 +39,54 @@ export default function Dashboard() {
     const high = incidents.filter(i => i.severity === 'high').length;
     const open = incidents.filter(i => i.status === 'open').length;
     const acked = incidents.filter(i => i.status === 'acknowledged').length;
-    const distinctZones = Array.from(new Set(incidents.map(i => i.zone))).length;
+    const distinctZones = cameras && cameras.length > 0
+      ? new Set(cameras.map(c => c.zone_name)).size
+      : new Set(incidents.map(i => i.zone)).size;
     return { total, high, open, acked, distinctZones };
-  }, [incidents]);
+  }, [incidents, cameras]);
 
   // ── Filtered Incident Stream ──
   const filtered = useMemo(() => {
     if (!incidents) return [];
     return incidents.filter(i => {
-      if (filterZone !== 'all' && !i.zone.includes(filterZone)) return false;
+      if (filterZone !== 'all' && !i.zone.toLowerCase().includes(filterZone.toLowerCase())) return false;
       if (filterStatus !== 'all' && i.status !== filterStatus) return false;
       if (searchQuery && !i.id.toLowerCase().includes(searchQuery.toLowerCase()) && !i.incident_type.toLowerCase().includes(searchQuery.toLowerCase())) return false;
       return true;
     }).sort((a, b) => new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime());
   }, [incidents, filterZone, filterStatus, searchQuery]);
 
-  // ── Real Hourly Activity Distribution Derived from Actual Timestamps ──
+  // ── Real 24-Hour Activity Distribution Derived from Actual Timestamps ──
   const chartData = useMemo(() => {
-    if (!incidents || incidents.length === 0) {
-      return [
-        { time: '08:00', count: 0 },
-        { time: '10:00', count: 0 },
-        { time: '12:00', count: 0 },
-        { time: '14:00', count: 0 },
-        { time: '16:00', count: 0 },
-      ];
+    const slots = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'];
+    const buckets: Record<string, number> = Object.fromEntries(slots.map(s => [s, 0]));
+
+    if (incidents && incidents.length > 0) {
+      incidents.forEach(inc => {
+        const d = new Date(inc.detected_at);
+        const hour = d.getHours();
+        if (hour < 4) buckets['00:00']++;
+        else if (hour < 8) buckets['04:00']++;
+        else if (hour < 12) buckets['08:00']++;
+        else if (hour < 16) buckets['12:00']++;
+        else if (hour < 20) buckets['16:00']++;
+        else buckets['20:00']++;
+      });
     }
-
-    // Group incidents by 2-hour slots based on their detected_at timestamps
-    const buckets: Record<string, number> = {
-      '08:00': 0,
-      '10:00': 0,
-      '12:00': 0,
-      '14:00': 0,
-      '16:00': 0,
-      '18:00': 0,
-    };
-
-    incidents.forEach(inc => {
-      const d = new Date(inc.detected_at);
-      const hour = d.getHours();
-      if (hour < 9) buckets['08:00']++;
-      else if (hour < 11) buckets['10:00']++;
-      else if (hour < 13) buckets['12:00']++;
-      else if (hour < 15) buckets['14:00']++;
-      else if (hour < 17) buckets['16:00']++;
-      else buckets['18:00']++;
-    });
 
     return Object.entries(buckets).map(([time, count]) => ({ time, count }));
   }, [incidents]);
 
   // ── Real Zone Compliance Health Derived from Incident Proportions ──
   const zoneHealth = useMemo(() => {
-    if (!incidents) return [];
-    const zones = ['Zone A', 'Zone B', 'Zone C'];
-    return zones.map(zoneName => {
-      const zoneIncidents = incidents.filter(i => i.zone.includes(zoneName.split(' ')[1]));
+    if (uniqueZones.length === 0) return [];
+    return uniqueZones.map(zoneName => {
+      const zoneIncidents = (incidents || []).filter(
+        i => i.zone === zoneName || i.zone.toLowerCase().includes(zoneName.toLowerCase())
+      );
       const zoneHigh = zoneIncidents.filter(i => i.severity === 'high').length;
       const count = zoneIncidents.length;
-      const score = count === 0 ? 100 : Math.max(70, Math.round(100 - (zoneHigh * 12 + (count - zoneHigh) * 4)));
+      const score = count === 0 ? 100 : Math.max(50, Math.round(100 - (zoneHigh * 10 + (count - zoneHigh) * 4)));
       return {
         name: zoneName,
         score,
@@ -98,7 +94,21 @@ export default function Dashboard() {
         highCount: zoneHigh,
       };
     });
-  }, [incidents]);
+  }, [uniqueZones, incidents]);
+
+  // ── Dynamic Zone Filter Options ──
+  const zoneFilterOptions = useMemo(() => {
+    const list = uniqueZones.map(z => {
+      const short = z.split(' - ')[0];
+      return { value: short, label: short };
+    });
+    const map = new Map<string, string>();
+    list.forEach(item => map.set(item.value, item.label));
+    return [
+      { value: 'all', label: 'All Zones' },
+      ...Array.from(map.entries()).map(([value, label]) => ({ value, label }))
+    ];
+  }, [uniqueZones]);
 
   // ── Loading Skeleton State (In-place shimmer skeletons, zero full-page blocking spinners) ──
   if (loading && !incidents) {
@@ -192,9 +202,9 @@ export default function Dashboard() {
             },
             { 
               label: 'Active Monitored Zones', 
-              value: stats.distinctZones || 3, 
+              value: stats.distinctZones, 
               accent: undefined, 
-              statusText: 'Physical zones',
+              statusText: `${stats.distinctZones} active zones`,
               statusColor: 'bg-surface-alt text-muted',
               icon: MapPin,
             },
@@ -351,12 +361,7 @@ export default function Dashboard() {
               layoutId="seg-zone"
               value={filterZone}
               onChange={setFilterZone}
-              options={[
-                { value: 'all', label: 'All Zones' },
-                { value: 'Zone A', label: 'Zone A' },
-                { value: 'Zone B', label: 'Zone B' },
-                { value: 'Zone C', label: 'Zone C' },
-              ]}
+              options={zoneFilterOptions}
             />
 
             {/* Status Filter */}
