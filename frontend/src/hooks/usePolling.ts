@@ -35,10 +35,12 @@ export function usePolling<T>(
   const [isActive, setIsActive] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const mountedRef = useRef(true);
+  const fetcherRef = useRef(fetcher);
+  fetcherRef.current = fetcher;
 
   const doFetch = useCallback(async () => {
     try {
-      const result = await fetcher();
+      const result = await fetcherRef.current();
       if (!mountedRef.current) return;
       setData(result);
       setError(null);
@@ -48,7 +50,7 @@ export function usePolling<T>(
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [fetcher]);
+  }, []);
 
   useEffect(() => {
     mountedRef.current = true;

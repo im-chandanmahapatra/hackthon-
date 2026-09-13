@@ -11,10 +11,11 @@ import { cn } from '../ui/Badge';
 
 interface ActionCenterProps {
   incidents: Incident[] | null;
+  zoneHealth?: Array<{ name: string; score: number; incidentCount: number; highCount: number }>;
   onRefresh: () => void;
 }
 
-export function ActionCenter({ incidents, onRefresh }: ActionCenterProps) {
+export function ActionCenter({ incidents, zoneHealth, onRefresh }: ActionCenterProps) {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [loadingAckId, setLoadingAckId] = useState<string | null>(null);
@@ -144,27 +145,29 @@ export function ActionCenter({ incidents, onRefresh }: ActionCenterProps) {
         </div>
 
         <div className="flex flex-col gap-3">
-          {[
-            { zone: 'Zone A (Main Yard)', score: 92, status: 'normal' },
-            { zone: 'Zone B (Logistics Bay)', score: 98, status: 'optimal' },
-            { zone: 'Zone C (Chemical Storage)', score: 84, status: 'warning' },
-          ].map((z) => (
-            <div key={z.zone} className="flex flex-col gap-1">
-              <div className="flex justify-between items-center text-[12px]">
-                <span className="font-body text-secondary font-medium">{z.zone}</span>
-                <span className="font-mono font-bold text-primary">{z.score}%</span>
+          {(zoneHealth && zoneHealth.length > 0) ? (
+            zoneHealth.map((z) => (
+              <div key={z.name} className="flex flex-col gap-1">
+                <div className="flex justify-between items-center text-[12px]">
+                  <span className="font-body text-secondary font-medium">{z.name}</span>
+                  <span className="font-mono font-bold text-primary">{z.score}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-surface-alt rounded-full overflow-hidden">
+                  <div 
+                    className={cn(
+                      "h-full rounded-full transition-all duration-700",
+                      z.score >= 95 ? "bg-emerald-500" : z.score >= 85 ? "bg-brand-accent" : "bg-status-warning"
+                    )}
+                    style={{ width: `${z.score}%` }}
+                  />
+                </div>
               </div>
-              <div className="w-full h-1.5 bg-surface-alt rounded-full overflow-hidden">
-                <div 
-                  className={cn(
-                    "h-full rounded-full transition-all duration-700",
-                    z.score >= 95 ? "bg-emerald-500" : z.score >= 90 ? "bg-brand-accent" : "bg-status-warning"
-                  )}
-                  style={{ width: `${z.score}%` }}
-                />
-              </div>
+            ))
+          ) : (
+            <div className="text-[12px] text-muted py-2">
+              Awaiting camera zone telemetry...
             </div>
-          ))}
+          )}
         </div>
       </Card>
 

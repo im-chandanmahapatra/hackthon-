@@ -1,6 +1,13 @@
 import os
 import json
 import uuid
+import numpy as np
+
+try:
+    import cv2
+except ImportError:
+    cv2 = None
+
 from fastapi import APIRouter, Depends, UploadFile, File, BackgroundTasks, HTTPException
 from sqlalchemy.orm import Session
 from backend.db import get_db
@@ -8,6 +15,7 @@ from backend.models import ProcessingJob
 from backend.schemas import UploadResponse, JobStatusResponse
 from backend.config import settings
 from backend.services.pipeline import process_video_background
+from ml.inference_wrapper import infer_frame
 
 router = APIRouter(prefix="/demo", tags=["Demo & Upload"])
 
@@ -73,3 +81,23 @@ def get_job_status(job_id: str, db: Session = Depends(get_db)):
         incident_ids=incident_ids,
         error_message=job.error_message,
     )
+
+@router.post("/infer-frame")
+async def infer_single_frame(file: UploadFile = File(...)):
+    """
+    Real-time single frame AI inference endpoint for live video viewport.
+    Decodes the frame and runs YOLO person, PPE, and fire detection.
+    """
+    if cv2 is None:
+        raise HTTPException(status_code=500, detail="OpenCV not installed on server.")
+
+    contents = await file.read()
+    nparr = np.frombuffer(contents, np.uint8)
+    frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+    if frame is None:
+        raise HTTPException(status_code=400, detail="Invalid image frame data.")
+
+    result = infer_frame(frame)
+    return result
+

@@ -52,6 +52,7 @@ export interface Camera {
   zone_name: string; // Derived via join — backend includes this in GET /cameras
   label: string;
   status: CameraStatus;
+  stream_url?: string;
 }
 
 /**

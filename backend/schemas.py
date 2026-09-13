@@ -31,6 +31,7 @@ class CameraResponse(BaseModel):
     zone_name: str
     label: str
     status: CameraStatus
+    stream_url: Optional[str] = None
 
     class Config:
         from_attributes = True

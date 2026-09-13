@@ -31,8 +31,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Static file serving for generated visual evidence snapshots
+# Static file serving for generated visual evidence snapshots and surveillance recordings
 app.mount("/evidence", StaticFiles(directory=str(settings.EVIDENCE_DIR)), name="evidence")
+app.mount("/uploads", StaticFiles(directory=str(settings.UPLOAD_DIR)), name="uploads")
 
 # Register API routers
 app.include_router(demo.router)

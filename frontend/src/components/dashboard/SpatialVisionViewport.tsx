@@ -8,7 +8,6 @@ import {
   ShieldCheck, 
   RefreshCw,
   PowerOff,
-  Zap,
   Volume2,
   VolumeX,
   Crosshair,
@@ -24,14 +23,19 @@ interface SpatialVisionViewportProps {
   onRefresh?: () => void;
 }
 
-type VideoSourceType = 'none' | 'webcam' | 'file' | 'demo';
+type VideoSourceType = 'none' | 'webcam' | 'file' | 'camera';
 
-// Royalty-free demo safety / industrial footage sample
-const SAMPLE_DEMO_VIDEO = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
+interface RealDetection {
+  class_name: string;
+  label: string;
+  confidence: number;
+  bbox: [number, number, number, number];
+  is_violation: boolean;
+}
 
 export function SpatialVisionViewport({
-  cameras: _cameras = [],
-  incidents = [],
+  cameras = [],
+  incidents: _incidents = [],
   onRefresh,
 }: SpatialVisionViewportProps) {
   const [videoSource, setVideoSource] = useState<VideoSourceType>('none');
@@ -42,12 +46,12 @@ export function SpatialVisionViewport({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [timestamp, setTimestamp] = useState(new Date());
   const [fps, setFps] = useState('30.2');
+  const [realDetections, setRealDetections] = useState<RealDetection[]>([]);
+  const [frameDims, setFrameDims] = useState<{ width: number; height: number }>({ width: 640, height: 480 });
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const activeIncidentsCount = incidents?.length || 2;
 
   // Clock & dynamic micro-jitter for FPS
   useEffect(() => {
@@ -85,7 +89,69 @@ export function SpatialVisionViewport({
     setActiveFileName(null);
     setIsPlaying(false);
     setErrorMessage(null);
+    setRealDetections([]);
   };
+
+  // Real-time AI Inference Loop for Active Video Stream
+  useEffect(() => {
+    if (videoSource === 'none' || !isPlaying) {
+      setRealDetections([]);
+      return;
+    }
+
+    let isMounted = true;
+    const offscreen = document.createElement('canvas');
+    const ctx = offscreen.getContext('2d');
+
+    const inferInterval = setInterval(() => {
+      const v = videoRef.current;
+      if (!v || v.paused || v.ended || !v.videoWidth || !v.videoHeight) return;
+
+      try {
+        const targetWidth = 640;
+        const targetHeight = Math.round((v.videoHeight / v.videoWidth) * targetWidth);
+        offscreen.width = targetWidth;
+        offscreen.height = targetHeight;
+
+        if (!ctx) return;
+        ctx.drawImage(v, 0, 0, targetWidth, targetHeight);
+
+        offscreen.toBlob(async (blob) => {
+          if (!blob || !isMounted) return;
+          const formData = new FormData();
+          formData.append('file', blob, 'frame.jpg');
+
+          try {
+            const apiBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
+            const res = await fetch(`${apiBase}/demo/infer-frame`, {
+              method: 'POST',
+              body: formData,
+            });
+
+            if (res.ok && isMounted) {
+              const data = await res.json();
+              if (data && data.detections) {
+                setRealDetections(data.detections);
+                setFrameDims({
+                  width: data.frame_width || targetWidth,
+                  height: data.frame_height || targetHeight
+                });
+              }
+            }
+          } catch {
+            // Silently maintain current state on network blip
+          }
+        }, 'image/jpeg', 0.65);
+      } catch {
+        // Video frame not ready
+      }
+    }, 450);
+
+    return () => {
+      isMounted = false;
+      clearInterval(inferInterval);
+    };
+  }, [videoSource, isPlaying]);
 
   // Connect Live WebCam
   const handleConnectWebcam = async () => {
@@ -137,14 +203,25 @@ export function SpatialVisionViewport({
     setIsPlaying(true);
   };
 
-  // Connect Sample Demo Stream
-  const handleConnectDemo = () => {
+  // Connect Live Edge Surveillance Camera Feed
+  const handleConnectCameraFeed = (targetCam?: Camera) => {
     cleanupMedia();
     setErrorMessage(null);
-    setActiveVideoUrl(SAMPLE_DEMO_VIDEO);
-    setActiveFileName('Demo Industrial Safety Stream');
-    setVideoSource('demo');
+    const apiBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
+    const chosenCam = targetCam || cameras?.find(c => c.stream_url) || cameras?.[0];
+    const streamUrl = chosenCam?.stream_url
+      ? (chosenCam.stream_url.startsWith('http') ? chosenCam.stream_url : `${apiBase}${chosenCam.stream_url}`)
+      : `${apiBase}/uploads/3fcef4ee-a632-429a-85e3-f8a14e289a35.mp4`;
+    const label = chosenCam ? `${chosenCam.label} (${chosenCam.id.toUpperCase()})` : 'Assembly Conveyor 01 (CAM-01)';
+    setActiveVideoUrl(streamUrl);
+    setActiveFileName(label);
+    setVideoSource('camera');
     setIsPlaying(true);
+    setTimeout(() => {
+      if (videoRef.current) {
+        videoRef.current.play().catch(() => {});
+      }
+    }, 100);
   };
 
   // Play / Pause Toggle
@@ -205,8 +282,8 @@ export function SpatialVisionViewport({
               ? 'Device WebCam Stream'
               : videoSource === 'file'
               ? `Video File: ${activeFileName}`
-              : videoSource === 'demo'
-              ? 'Demo Industrial Stream'
+              : videoSource === 'camera'
+              ? (activeFileName || 'Edge Surveillance Stream')
               : 'Spatial Vision Viewport'}
           </span>
 
@@ -270,11 +347,11 @@ export function SpatialVisionViewport({
               No Video Stream Connected
             </h3>
 
-            <p className="font-body text-[13px] text-stone-400 mt-1.5 leading-relaxed">
-              Connect your device webcam, load a local video file, or run a demo stream to activate real-time YOLOv8 spatial inference.
+            <p className="font-body text-[13px] text-stone-400 mt-1.5 leading-relaxed max-w-md">
+              Connect your device webcam, select an edge surveillance camera feed, or upload footage to run real-time YOLOv8 spatial inference.
             </p>
 
-            {/* 3 Prominent Connection Action Triggers */}
+            {/* Prominent Connection Action Triggers */}
             <div className="flex flex-wrap items-center justify-center gap-2.5 mt-5">
               <button
                 type="button"
@@ -286,18 +363,18 @@ export function SpatialVisionViewport({
 
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => handleConnectCameraFeed()}
                 className="px-4 py-2 rounded-full font-body text-[12px] font-semibold bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-600 transition-all flex items-center gap-2 cursor-pointer active:scale-[0.97]"
               >
-                <UploadCloud size={14} /> Select Video File
+                <Crosshair size={14} className="text-emerald-400" /> Edge Camera 01
               </button>
 
               <button
                 type="button"
-                onClick={handleConnectDemo}
+                onClick={() => fileInputRef.current?.click()}
                 className="px-3.5 py-2 rounded-full font-body text-[12px] font-semibold bg-stone-900 hover:bg-stone-800 text-stone-300 border border-stone-700 transition-all flex items-center gap-1.5 cursor-pointer active:scale-[0.97]"
               >
-                <Zap size={13} className="text-amber-400" /> Demo Feed
+                <UploadCloud size={14} /> Select Video File
               </button>
             </div>
           </div>
@@ -340,56 +417,70 @@ export function SpatialVisionViewport({
             )}
 
             {/* Real-time Dynamic AI Bounding Boxes Overlaid on Real Video */}
-            <div className="absolute inset-0 pointer-events-none z-10 p-6 sm:p-10 flex items-center justify-between">
-              
-              {/* Dynamic Detection Reticle 1: PPE Hard Hat Violation */}
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                className="relative border-2 border-red-500 rounded-sm w-36 sm:w-44 h-48 sm:h-60 shadow-[0_0_20px_rgba(239,68,68,0.45),inset_0_0_10px_rgba(239,68,68,0.2)] ml-4 sm:ml-12"
-              >
-                {/* Corner brackets */}
-                <div className="absolute -top-1 -left-1 w-2.5 h-2.5 border-t-2 border-l-2 border-white" />
-                <div className="absolute -top-1 -right-1 w-2.5 h-2.5 border-t-2 border-r-2 border-white" />
-                <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 border-b-2 border-l-2 border-white" />
-                <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 border-b-2 border-r-2 border-white" />
+            <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
+              {realDetections.map((det, idx) => {
+                const [x1, y1, x2, y2] = det.bbox;
+                const leftPct = Math.max(0, (x1 / frameDims.width) * 100);
+                const topPct = Math.max(0, (y1 / frameDims.height) * 100);
+                const widthPct = Math.min(100 - leftPct, Math.max(2, ((x2 - x1) / frameDims.width) * 100));
+                const heightPct = Math.min(100 - topPct, Math.max(2, ((y2 - y1) / frameDims.height) * 100));
 
-                {/* Top Badge */}
-                <div className="absolute -top-5 left-0 px-1.5 py-0.5 rounded-t bg-red-500 text-white font-mono text-[9px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-sm">
-                  <AlertTriangle size={10} />
-                  <span>NO HARD HAT 94%</span>
+                const isViolation = det.is_violation;
+                const isWorkerOutline = det.class_name === 'worker';
+
+                const borderColor = isViolation 
+                  ? 'border-red-500 shadow-[0_0_16px_rgba(239,68,68,0.5)]' 
+                  : 'border-emerald-400 shadow-[0_0_16px_rgba(16,185,129,0.4)]';
+                const badgeBg = isViolation ? 'bg-red-500 text-white' : 'bg-emerald-500 text-black';
+
+                return (
+                  <motion.div
+                    key={`${det.class_name}-${idx}`}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.2 }}
+                    style={{
+                      left: `${leftPct}%`,
+                      top: `${topPct}%`,
+                      width: `${widthPct}%`,
+                      height: `${heightPct}%`,
+                    }}
+                    className={cn(
+                      "absolute border-2 transition-all duration-200 pointer-events-none rounded-sm",
+                      isWorkerOutline ? "border-dashed border-white/50 opacity-60" : borderColor
+                    )}
+                  >
+                    {/* Corner Reticle Brackets */}
+                    <div className="absolute -top-1 -left-1 w-2.5 h-2.5 border-t-2 border-l-2 border-white" />
+                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 border-t-2 border-r-2 border-white" />
+                    <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 border-b-2 border-l-2 border-white" />
+                    <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 border-b-2 border-r-2 border-white" />
+
+                    {/* HUD Badge */}
+                    <div className={cn(
+                      "absolute -top-5 left-0 px-1.5 py-0.5 rounded-t font-mono text-[9px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-sm whitespace-nowrap",
+                      isWorkerOutline ? "bg-black/80 text-white border border-white/20" : badgeBg
+                    )}>
+                      {isViolation ? <AlertTriangle size={10} /> : <ShieldCheck size={10} />}
+                      <span>{det.label} {Math.round(det.confidence * 100)}%</span>
+                    </div>
+
+                    {!isWorkerOutline && (
+                      <div className="absolute -bottom-5 right-0 font-mono text-[9px] bg-black/80 px-1.5 py-0.2 rounded border border-white/20 text-stone-300">
+                        TRACK_ID: #{String(idx + 101).padStart(3, '0')}
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })}
+
+              {/* Scanning HUD Badge when searching for targets */}
+              {realDetections.length === 0 && isPlaying && (
+                <div className="absolute top-4 left-4 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-stone-300 font-mono text-[10px] flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-ping" />
+                  <span>NEURAL INFERENCE ACTIVE • SCANNING WORKSPACE</span>
                 </div>
-
-                <div className="absolute -bottom-5 right-0 font-mono text-[9px] text-red-400 bg-black/80 px-1.5 py-0.2 rounded border border-red-500/40">
-                  TRACK_ID: #082
-                </div>
-              </motion.div>
-
-              {/* Dynamic Detection Reticle 2: PPE Hi-Vis Vest OK */}
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.15 }}
-                className="relative border-2 border-emerald-400 rounded-sm w-36 sm:w-44 h-48 sm:h-60 shadow-[0_0_20px_rgba(16,185,129,0.35),inset_0_0_10px_rgba(16,185,129,0.15)] mr-4 sm:mr-12"
-              >
-                {/* Corner brackets */}
-                <div className="absolute -top-1 -left-1 w-2.5 h-2.5 border-t-2 border-l-2 border-white" />
-                <div className="absolute -top-1 -right-1 w-2.5 h-2.5 border-t-2 border-r-2 border-white" />
-                <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 border-b-2 border-l-2 border-white" />
-                <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 border-b-2 border-r-2 border-white" />
-
-                {/* Top Badge */}
-                <div className="absolute -top-5 left-0 px-1.5 py-0.5 rounded-t bg-emerald-500 text-black font-mono text-[9px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-sm">
-                  <ShieldCheck size={10} />
-                  <span>HI-VIS VEST 98%</span>
-                </div>
-
-                <div className="absolute -bottom-5 right-0 font-mono text-[9px] text-emerald-400 bg-black/80 px-1.5 py-0.2 rounded border border-emerald-500/40">
-                  {activeIncidentsCount > 0 ? 'TARGETS: 2' : 'TARGETS: 1'}
-                </div>
-              </motion.div>
-
+              )}
             </div>
           </div>
         )}
@@ -441,17 +532,17 @@ export function SpatialVisionViewport({
                 </button>
                 <button
                   type="button"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => handleConnectCameraFeed()}
                   className="px-3 py-1 rounded-full font-body text-[11px] font-semibold text-stone-200 hover:text-white hover:bg-white/10 transition-all flex items-center gap-1 cursor-pointer"
                 >
-                  <UploadCloud size={12} /> Choose Video
+                  <Crosshair size={12} className="text-emerald-400" /> Edge Cam 01
                 </button>
                 <button
                   type="button"
-                  onClick={handleConnectDemo}
+                  onClick={() => fileInputRef.current?.click()}
                   className="px-3 py-1 rounded-full font-body text-[11px] font-semibold text-stone-200 hover:text-white hover:bg-white/10 transition-all flex items-center gap-1 cursor-pointer"
                 >
-                  <Zap size={12} className="text-amber-400" /> Demo
+                  <UploadCloud size={12} /> Select Video
                 </button>
               </>
             )}
