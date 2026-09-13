@@ -31,9 +31,9 @@ import {
 // ─── CONFIGURATION ────────────────────────────────────────────────────────────
 
 /**
- * Flip this to false when the real backend (P2) endpoints are live.
+ * Connected directly to live FastAPI backend (M4 Golden Path).
  */
-export const USE_MOCK = true;
+export const USE_MOCK = false;
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
 
@@ -84,6 +84,15 @@ export async function getJobStatus(job_id: string): Promise<JobStatusResponse> {
   return apiFetch<JobStatusResponse>(`/demo/status/${job_id}`);
 }
 
+function formatIncident(inc: Incident): Incident {
+  return {
+    ...inc,
+    evidence_url: inc.evidence_url && inc.evidence_url.startsWith('/')
+      ? `${API_BASE}${inc.evidence_url}`
+      : inc.evidence_url,
+  };
+}
+
 /**
  * GET /incidents
  * Optional filters: zone, type, status
@@ -97,12 +106,14 @@ export async function getIncidents(filters?: IncidentFilters): Promise<Incident[
     if (filters?.status) results = results.filter((i) => i.status === filters.status);
     return results.sort((a, b) => b.detected_at.localeCompare(a.detected_at));
   }
+
   const params = new URLSearchParams();
   if (filters?.zone)   params.set('zone', filters.zone);
   if (filters?.type)   params.set('type', filters.type!);
   if (filters?.status) params.set('status', filters.status);
   const qs = params.toString() ? `?${params.toString()}` : '';
-  return apiFetch<Incident[]>(`/incidents${qs}`);
+  const incidents = await apiFetch<Incident[]>(`/incidents${qs}`);
+  return incidents.map(formatIncident);
 }
 
 /**
@@ -115,7 +126,8 @@ export async function getIncident(id: string): Promise<Incident> {
     if (!found) throw new Error(`Incident ${id} not found`);
     return found;
   }
-  return apiFetch<Incident>(`/incidents/${id}`);
+  const inc = await apiFetch<Incident>(`/incidents/${id}`);
+  return formatIncident(inc);
 }
 
 /**
@@ -134,7 +146,8 @@ export async function ackIncident(id: string): Promise<AckResponse> {
     found.acked_at = new Date().toISOString();
     return { ...found };
   }
-  return apiFetch<AckResponse>(`/incidents/${id}/ack`, { method: 'POST' });
+  const inc = await apiFetch<Incident>(`/incidents/${id}/ack`, { method: 'POST' });
+  return formatIncident(inc);
 }
 
 /**

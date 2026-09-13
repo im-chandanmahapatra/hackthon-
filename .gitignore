@@ -1,0 +1,44 @@
+# Python & Virtual Environments
+.venv/
+env/
+venv/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Database & SQLite
+*.db
+*.sqlite3
+
+# Uploads and temporary evidence
+uploads/*
+!uploads/.gitkeep
+evidence/*
+!evidence/.gitkeep
+test_clip.mp4
+
+# Environment Variables
+.env
+frontend/.env
+*.env.local
+
+# Node & Frontend Build
+node_modules/
+frontend/node_modules/
+frontend/dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Heavy Model Weights (downloaded on demand or stored in cloud)
+ml/weights/*.pt
+!ml/weights/.gitkeep
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
