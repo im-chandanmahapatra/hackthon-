@@ -5,6 +5,7 @@ import Upload from './pages/Upload';
 import IncidentDetail from './pages/IncidentDetail';
 import Cameras from './pages/Cameras';
 import Settings from './pages/Settings';
+import VideoIntelligence from './pages/VideoIntelligence';
 
 import { ToastProvider } from './hooks/useToast';
 import { ThemeProvider } from './components/ThemeProvider';
@@ -19,11 +20,12 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route element={<AppLayout />}>
-              <Route path="/"              element={<Dashboard />} />
-              <Route path="/upload"        element={<Upload />} />
-              <Route path="/incidents/:id" element={<IncidentDetail />} />
-              <Route path="/cameras"       element={<Cameras />} />
-              <Route path="/settings"      element={<Settings />} />
+              <Route path="/"                      element={<Dashboard />} />
+              <Route path="/upload"               element={<Upload />} />
+              <Route path="/video-intelligence"   element={<VideoIntelligence />} />
+              <Route path="/incidents/:id"        element={<IncidentDetail />} />
+              <Route path="/cameras"              element={<Cameras />} />
+              <Route path="/settings"             element={<Settings />} />
               {/* Catch-all → Dashboard */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>

@@ -314,6 +314,161 @@ class AudioEngine {
     osc.start(now);
     osc.stop(now + 0.38);
   }
+
+  // ─── Per-Detection Alert Sounds ──────────────────────────────────────────────
+
+  /**
+   * No Helmet Alert — crisp single high-tone beep (A5 → descend)
+   * Short, punchy, clearly distinct.
+   */
+  public playHelmetAlert() {
+    if (this.isMuted) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(900, now);
+    osc.frequency.exponentialRampToValueAtTime(600, now + 0.18);
+
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.12 * this.volume, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.28);
+  }
+
+  /**
+   * No Vest Alert — double-pulse medium tone (two quick chirps at E5)
+   * Immediately recognizable as a PPE/vest violation.
+   */
+  public playVestAlert() {
+    if (this.isMuted) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    [0, 0.15].forEach((offset) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(659, now + offset);
+
+      gain.gain.setValueAtTime(0, now + offset);
+      gain.gain.linearRampToValueAtTime(0.14 * this.volume, now + offset + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.12);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + offset);
+      osc.stop(now + offset + 0.15);
+    });
+  }
+
+  /**
+   * Smoke Alert — low, wobbly sine sweep (180Hz undulating)
+   * Eerie, low-frequency to signal environmental hazard.
+   */
+  public playSmokeAlert() {
+    if (this.isMuted) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(180, now);
+
+    lfo.type = 'sine';
+    lfo.frequency.setValueAtTime(6, now);  // 6Hz wobble
+    lfoGain.gain.setValueAtTime(20, now);  // ±20Hz wobble depth
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.frequency);
+
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.18 * this.volume, now + 0.05);
+    gain.gain.setValueAtTime(0.18 * this.volume, now + 0.5);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.75);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    lfo.start(now);
+    osc.start(now);
+    lfo.stop(now + 0.8);
+    osc.stop(now + 0.8);
+  }
+
+  /**
+   * Fire Alert — urgent alternating dual-frequency siren (4 rapid pulses)
+   * Highest urgency: loud, fast, undeniable.
+   */
+  public playFireAlert() {
+    if (this.isMuted) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    const pulses = [
+      { freq: 1050, time: 0,    dur: 0.09 },
+      { freq: 750,  time: 0.09, dur: 0.09 },
+      { freq: 1050, time: 0.18, dur: 0.09 },
+      { freq: 750,  time: 0.27, dur: 0.09 },
+      { freq: 1050, time: 0.36, dur: 0.11 },
+    ];
+
+    pulses.forEach(({ freq, time, dur }) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, now + time);
+
+      gain.gain.setValueAtTime(0, now + time);
+      gain.gain.linearRampToValueAtTime(0.2 * this.volume, now + time + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + time + dur);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + time);
+      osc.stop(now + time + dur + 0.02);
+    });
+  }
+
+  /**
+   * Dispatcher: plays the correct hazard-specific sound
+   */
+  public playDetectionAlert(type: 'no_helmet' | 'no_vest' | 'smoke' | 'fire' | string) {
+    switch (type) {
+      case 'no_helmet':
+      case 'no_boots':
+      case 'no_gloves':
+      case 'no_goggles':
+        this.playHelmetAlert();
+        break;
+      case 'no_vest':
+        this.playVestAlert();
+        break;
+      case 'smoke':
+        this.playSmokeAlert();
+        break;
+      case 'fire':
+        this.playFireAlert();
+        break;
+      default:
+        this.playAlertChime();
+    }
+  }
 }
 
 export const audioEngine = new AudioEngine();
+

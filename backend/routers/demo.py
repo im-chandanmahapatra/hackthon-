@@ -82,6 +82,8 @@ def get_job_status(job_id: str, db: Session = Depends(get_db)):
         error_message=job.error_message,
     )
 
+import time
+
 @router.post("/infer-frame")
 async def infer_single_frame(file: UploadFile = File(...)):
     """
@@ -98,6 +100,30 @@ async def infer_single_frame(file: UploadFile = File(...)):
     if frame is None:
         raise HTTPException(status_code=400, detail="Invalid image frame data.")
 
+    t0 = time.perf_counter()
     result = infer_frame(frame)
+    latency_ms = round((time.perf_counter() - t0) * 1000, 1)
+
+    detections = result.get("detections", [])
+    workers = [d for d in detections if d.get("class_name") == "worker"]
+    violations = [d for d in detections if d.get("is_violation")]
+    compliance_items = [d for d in detections if d.get("class_name") in ["helmet", "vest"]]
+    
+    compliance_pct = 100
+    total_checks = len(compliance_items) + len([v for v in violations if v.get("class_name") in ["no_helmet", "no_vest"]])
+    if total_checks > 0:
+        compliant_count = len(compliance_items)
+        compliance_pct = round((compliant_count / total_checks) * 100)
+
+    confidences = [d.get("confidence", 0) for d in detections if "confidence" in d]
+    avg_conf = round(float(np.mean(confidences)) * 100, 1) if confidences else 95.0
+
+    result["latency_ms"] = latency_ms
+    result["worker_count"] = len(workers)
+    result["violation_count"] = len(violations)
+    result["compliance_pct"] = compliance_pct
+    result["mean_confidence_pct"] = avg_conf
+    result["hazard_detected"] = any(d.get("class_name") in ["fire", "smoke"] for d in detections)
+
     return result
 

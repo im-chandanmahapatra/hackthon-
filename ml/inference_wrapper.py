@@ -162,7 +162,7 @@ class InferenceEngine:
 
         if self.fire_model is not None:
             try:
-                results = self.fire_model(frame, conf=0.45, imgsz=416, verbose=False)
+                results = self.fire_model(frame, conf=0.50, imgsz=416, verbose=False)
                 detections = []
                 for r in results:
                     for box in r.boxes:
@@ -185,30 +185,40 @@ class InferenceEngine:
         return self._heuristic_fire_detection(frame, h, w)
 
     def _heuristic_ppe_detection(self, frame: np.ndarray, h: int, w: int) -> List[Dict[str, Any]]:
-        cx, cy = int(w * 0.45), int(h * 0.40)
-        bw, bh = int(w * 0.22), int(h * 0.45)
-        x1, y1 = max(10, cx - bw // 2), max(10, cy - bh // 2)
-        x2, y2 = min(w - 10, cx + bw // 2), min(h - 10, cy + bh // 2)
-        return [
-            {"class_name": "no_helmet", "confidence": 0.88, "bbox": [x1 + 10, y1, x2 - 10, y1 + int(bh * 0.28)]},
-            {"class_name": "no_vest", "confidence": 0.83, "bbox": [x1, y1 + int(bh * 0.25), x2, y1 + int(bh * 0.70)]}
-        ]
+        """
+        Fallback when no YOLO weights are loaded.
+        Returns EMPTY — never produce false detections without a real model.
+        """
+        _ = frame, h, w  # suppress unused-variable warnings
+        return []
 
     def _heuristic_fire_detection(self, frame: np.ndarray, h: int, w: int) -> List[Dict[str, Any]]:
+        """
+        CV2 colour-space fire heuristic with strict thresholds to eliminate
+        false positives from orange-lit scenes, sunsets, and warm fluorescent lighting.
+        Requires: >4% pixel coverage AND contours >2000px² to fire.
+        """
         if cv2 is None:
             return []
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        mask = cv2.inRange(hsv, np.array([15, 100, 180]), np.array([35, 255, 255]))
+        # Tighter hue/saturation band for actual flames (bright orange-red, high saturation)
+        mask = cv2.inRange(
+            hsv,
+            np.array([8, 160, 200]),   # min: H=8, S=160, V=200 (very bright, very saturated)
+            np.array([30, 255, 255])   # max: H=30, S=255, V=255
+        )
         nonzero = cv2.countNonZero(mask)
-        if (nonzero / (h * w)) > 0.015:
+        # Must cover > 4% of frame pixels (was 1.5% — way too loose)
+        if (nonzero / (h * w)) > 0.04:
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             detections = []
             for cnt in contours:
-                if cv2.contourArea(cnt) > 800:
+                # Require larger contour area to filter out small reflections
+                if cv2.contourArea(cnt) > 2000:
                     x, y, bw, bh = cv2.boundingRect(cnt)
                     detections.append({
                         "class_name": "fire",
-                        "confidence": 0.91,
+                        "confidence": round(0.55 + (cv2.contourArea(cnt) / (h * w)) * 5, 2),
                         "bbox": [x, y, x + bw, y + bh]
                     })
             if detections:
@@ -306,7 +316,7 @@ class InferenceEngine:
 
                 # 4. Fire & Smoke
                 if self.fire_model is not None:
-                    fire_results = self.fire_model(frame, conf=0.45, imgsz=416, verbose=False)
+                    fire_results = self.fire_model(frame, conf=0.50, imgsz=416, verbose=False)
                     for r in fire_results:
                         for box in r.boxes:
                             cls_id = int(box.cls[0].item())
