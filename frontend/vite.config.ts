@@ -6,7 +6,12 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/evidence': 'http://127.0.0.1:8000',
+      // Proxy all backend routes through Vite → eliminates CORS in dev
+      '/incidents': 'http://127.0.0.1:8000',
+      '/cameras':   'http://127.0.0.1:8000',
+      '/demo':      'http://127.0.0.1:8000',
+      '/uploads':   'http://127.0.0.1:8000',
+      '/evidence':  'http://127.0.0.1:8000',
     },
   },
 })

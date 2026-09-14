@@ -2,10 +2,21 @@
   "name": "argus-workspace",
   "private": true,
   "version": "1.0.0",
+  "workspaces": [
+    "frontend"
+  ],
   "scripts": {
-    "dev": "npm run dev --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "lint": "npm run lint --prefix frontend",
-    "backend": ".\\.venv\\Scripts\\uvicorn.exe backend.main:app --host 127.0.0.1 --port 8000"
+    "dev": "concurrently -n \"backend,frontend\" -c \"cyan.bold,magenta.bold\" --kill-others-on-fail \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "node scripts/dev-backend.js",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "build": "npm run build --workspace=frontend",
+    "start": "concurrently -n \"backend,frontend\" -c \"cyan.bold,magenta.bold\" \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "node scripts/start-backend.js",
+    "start:frontend": "npm run preview --workspace=frontend",
+    "lint": "npm run lint --workspace=frontend",
+    "typecheck": "npm run typecheck --workspace=frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
   }
 }

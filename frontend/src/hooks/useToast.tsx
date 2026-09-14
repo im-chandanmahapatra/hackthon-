@@ -33,7 +33,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   ) => {
     const id = `toast-${Date.now()}-${Math.random()}`;
     const timestamp = opts?.timestamp ?? new Date().toLocaleTimeString('en-GB', {
-      hour: '2-digit', minute: '2-digit', second: '2-digit'
+      hour: '2-digit', minute: '2-digit',
     });
     setToasts((prev) => [...prev.slice(-4), { id, message, type, timestamp, ...opts }]);
     // Fire alerts persist longer

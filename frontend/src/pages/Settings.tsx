@@ -373,6 +373,7 @@ export default function Settings() {
                 key={item.id}
                 type="button"
                 onClick={() => {
+                  if (theme === item.id) return;
                   setTheme(item.id as 'light' | 'dark' | 'system');
                   showToast(`Switched theme to ${item.label}`, 'info');
                 }}
