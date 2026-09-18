@@ -1,0 +1,73 @@
+﻿# =============================================================================
+# Argus PPE Detection System — Model Configuration
+# =============================================================================
+# mode: optimized | legacy | ensemble
+mode: optimized
+
+# Model Weights
+models:
+  legacy:
+    path: ml/weights/ppe_best.pt
+    desc: "Original hackathon PPE model (DO NOT DELETE)"
+  master:
+    path: ml/weights/ppe_master.pt
+    desc: "Master PPE model — 22,138 image unified corpus"
+  merged:
+    path: ml/weights/ppe_merged_best.pt
+    desc: "Retrained model from clean merged master dataset"
+    optional: true
+
+# Inference Parameters
+inference:
+  imgsz: 640
+  conf_threshold: 0.30
+  iou_threshold: 0.45
+  max_det: 300
+
+# Person Detection
+person_detection:
+  enabled: true
+  model: ml/weights/yolov8n.pt
+  imgsz: 416
+  conf_threshold: 0.35
+  min_width: 20
+  min_height: 40
+
+# Spatial Matching
+spatial:
+  head_zone_ratio: 0.28
+  torso_upper_ratio: 0.20
+  torso_lower_ratio: 0.72
+  iou_threshold: 0.12
+
+# Compliance Logic
+compliance:
+  uncertain_threshold: 0.20
+  check_helmet: true
+  check_vest: true
+  check_gloves: false
+  check_goggles: false
+  check_mask: false
+  check_safety_shoe: false
+
+# Ensemble Configuration
+ensemble:
+  method: wbf
+  legacy_weight: 0.35
+  master_weight: 0.65
+  iou_threshold: 0.55
+  skip_box_threshold: 0.30
+
+# Canonical Class Mapping (both ppe_best.pt and ppe_master.pt)
+canonical_classes:
+  0: Gloves
+  1: Vest
+  2: goggles
+  3: helmet
+  4: mask
+  5: safety_shoe
+
+# Dataset Reference
+dataset:
+  master: ml/datasets/master_dataset/data.yaml
+  class_mapping: ml/datasets/master_dataset/class_mapping.json

@@ -1,0 +1,70 @@
+﻿{
+  "generated_at": "2026-09-18",
+  "master_dataset": {
+    "source": "C:/Model/PPE_Master_System/dataset",
+    "total_images": 22138,
+    "total_annotations": 52008,
+    "splits": {
+      "train": {
+        "images": 16841,
+        "labels": 16841,
+        "annotations": 40810
+      },
+      "val": {
+        "images": 3036,
+        "labels": 3036,
+        "annotations": 5899
+      },
+      "test": {
+        "images": 2261,
+        "labels": 2261,
+        "annotations": 5299
+      }
+    },
+    "class_distribution_approx": {
+      "Gloves":     {"instances": 7350,  "pct": 14.1},
+      "Vest":       {"instances": 12000, "pct": 23.1},
+      "goggles":    {"instances": 6500,  "pct": 12.5},
+      "helmet":     {"instances": 18500, "pct": 35.6},
+      "mask":       {"instances": 4000,  "pct": 7.7},
+      "safety_shoe": {"instances": 3658, "pct": 7.0}
+    },
+    "class_imbalance_note": "helmet class dominates (35.6%) due to SHWD dataset inclusion (19,252 helmet annotations). Gloves, safety_shoe, mask are underrepresented.",
+    "data_quality": {
+      "corrupted_images": 0,
+      "invalid_labels": 0,
+      "empty_annotations": "~3% (background images - intentional)",
+      "duplicate_removed": "Built-in during merge with prefix-based unique naming"
+    }
+  },
+  "hackathon_original": {
+    "source": "Roboflow PPE v3 subset (training data for ppe_best.pt)",
+    "note": "Original raw dataset no longer locally available; only model weights preserved",
+    "model_sha256": "07172EF3AE9E256C40A1FB0CE3EEFE5547D90170645AA73DDED0FFFC382CDB31"
+  },
+  "source_datasets_summary": [
+    {
+      "name": "Industrial PPE Safety Dataset v3 (Roboflow)",
+      "images": 12078,
+      "notes": "All 6 PPE classes, auto-oriented 640x640",
+      "class_mapping": "Direct 1:1 canonical"
+    },
+    {
+      "name": "Safety Helmet Wearing Dataset (SHWD)",
+      "images": 5000,
+      "helmet_annotations": 19252,
+      "notes": "Pascal VOC XML -> YOLO; helmet-only at class ID 3; includes negative/background heads"
+    },
+    {
+      "name": "CHV Dataset (Chinese Helmet & Vest)",
+      "images": 1330,
+      "notes": "Remapped: vest->1, all helmet colors->3; person annotations discarded"
+    },
+    {
+      "name": "SH17 Industrial PPE Dataset",
+      "images": 3730,
+      "annotations": 11422,
+      "breakdown": {"safety_shoe": 4560, "Gloves": 2790, "goggles": 1945, "helmet": 927, "mask": 670, "Vest": 530}
+    }
+  ]
+}

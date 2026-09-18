@@ -36,6 +36,12 @@ yarn-error.log*
 # Heavy Model Weights (downloaded on demand or stored in cloud)
 ml/weights/*.pt
 !ml/weights/.gitkeep
+ml/weights/*.onnx
+*.onnx
+
+# Training runs & validation outputs
+runs/
+ml/experiments/training_runs/
 
 # IDE & OS
 .vscode/

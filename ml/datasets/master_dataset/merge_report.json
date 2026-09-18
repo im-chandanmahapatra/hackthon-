@@ -1,0 +1,53 @@
+﻿{
+  "report_version": "1.0",
+  "generated_at": "2026-09-18",
+  "merge_strategy": "4-dataset unified merge with canonical class normalization",
+  "excluded_items": [],
+  "exclusion_criteria": [
+    "corrupted images (none found)",
+    "invalid YOLO annotations (none found in master dataset)",
+    "class ID mismatches (all resolved via remapping)"
+  ],
+  "class_remapping_applied": {
+    "SHWD": {
+      "action": "Pascal VOC XML converted to YOLO format",
+      "class_mapping": {"helmet": 3},
+      "excluded": "non-helmet annotations"
+    },
+    "CHV": {
+      "action": "Integer class ID remapping",
+      "original_to_canonical": {
+        "0": "IGNORED (person)",
+        "1": "1 (Vest)",
+        "2": "3 (helmet)",
+        "3": "3 (helmet)",
+        "4": "3 (helmet)",
+        "5": "3 (helmet)"
+      }
+    },
+    "Roboflow_PPE_v3": {"action": "Direct copy - identical canonical mapping"},
+    "SH17": {"action": "Direct copy - identical canonical mapping"}
+  },
+  "data_leakage_prevention": {
+    "method": "Dataset-level split assignment with fixed random seed (42)",
+    "strategy": "80/10/10 train/val/test split per source dataset",
+    "note": "Related frames within same source dataset grouped by source"
+  },
+  "prefix_naming": {
+    "shwd_": "Safety Helmet Wearing Dataset images",
+    "chv_":  "Chinese Helmet & Vest Dataset images",
+    "other": "Roboflow PPE v3 and SH17 (original filenames preserved)"
+  },
+  "model_integrity": {
+    "ppe_best.pt": {
+      "sha256": "07172EF3AE9E256C40A1FB0CE3EEFE5547D90170645AA73DDED0FFFC382CDB31",
+      "preserved": true,
+      "modified": false
+    },
+    "ppe_master.pt": {
+      "sha256": "12B23C4CFA5B4FBE2932B977D7E1D26D8081E54044DEB18EAB9A3AFEACCA0663",
+      "preserved": true,
+      "modified": false
+    }
+  }
+}

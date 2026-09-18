@@ -1,0 +1,25 @@
+﻿# Master PPE Dataset — data.yaml
+# ================================
+# Canonical class mapping (shared by ppe_best.pt and ppe_master.pt)
+# Classes ordered by ID as they exist in the trained models.
+#
+# Source datasets:
+#   1. Industrial PPE Safety Dataset v3 (Roboflow) — 12,078 images
+#   2. Safety Helmet Wearing Dataset (SHWD)         —  5,000 images
+#   3. CHV (Chinese Helmet & Vest) Dataset          —  1,330 images
+#   4. SH17 Industrial PPE Dataset                  —  3,730 images
+#
+# Total: 22,138 images | 52,008 annotations
+# Splits: train=16,841 | val=3,036 | test=2,261
+#
+# NOTE: This dataset is a REFERENCE dataset. Training is done from
+#       C:\Model\PPE_Master_System\dataset\data.yaml
+#       This file documents the canonical mapping for the hackathon project.
+
+path: C:/hackthon-/ml/datasets/master_dataset
+train: images/train
+val:   images/val
+test:  images/test
+
+nc: 6
+names: ['Gloves', 'Vest', 'goggles', 'helmet', 'mask', 'safety_shoe']

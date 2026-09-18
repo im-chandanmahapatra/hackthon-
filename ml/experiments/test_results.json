@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "test": "integrity:ppe_best.pt",
+      "status": "PASS",
+      "detail": "SHA256=07172EF3AE9E256C..."
+    },
+    {
+      "test": "integrity:ppe_master.pt",
+      "status": "PASS",
+      "detail": "SHA256=12B23C4CFA5B4FBE..."
+    },
+    {
+      "test": "load:ppe_master.pt",
+      "status": "PASS",
+      "detail": "Classes: ['Gloves', 'Vest', 'goggles', 'helmet', 'mask', 'safety_shoe']"
+    },
+    {
+      "test": "load:ppe_best.pt",
+      "status": "PASS",
+      "detail": "Classes: ['Gloves', 'Vest', 'goggles', 'helmet', 'mask', 'safety_shoe']"
+    },
+    {
+      "test": "InferenceEngine:init",
+      "status": "PASS",
+      "detail": "Mode: master (ppe_master.pt)"
+    },
+    {
+      "test": "api:run_ppe",
+      "status": "PASS",
+      "detail": "Type: list"
+    },
+    {
+      "test": "api:run_fire",
+      "status": "PASS",
+      "detail": "Type: list"
+    },
+    {
+      "test": "api:infer_frame",
+      "status": "PASS",
+      "detail": "Type: dict"
+    },
+    {
+      "test": "video:pipeline",
+      "status": "PASS",
+      "detail": "6 frames, 6.1 FPS"
+    },
+    {
+      "test": "db:schema",
+      "status": "PASS",
+      "detail": "Tables OK: ['cameras', 'detections', 'evidence', 'incidents', 'processing_jobs', 'zones']"
+    },
+    {
+      "test": "perf:run_ppe",
+      "status": "PASS",
+      "detail": "Mean=116.8ms FPS=8.6"
+    }
+  ],
+  "summary": {
+    "total": 11,
+    "passed": 11,
+    "failed": 0
+  }
+}

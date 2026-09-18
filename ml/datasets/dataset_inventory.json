@@ -1,0 +1,69 @@
+﻿{
+  "generated_at": "2026-09-18",
+  "datasets": {
+    "ppe_master_system": {
+      "path": "C:/Model/PPE_Master_System/dataset",
+      "yaml": "C:/Model/PPE_Master_System/dataset/data.yaml",
+      "source": "4-dataset unified merge",
+      "source_datasets": [
+        {
+          "name": "Industrial PPE Safety Dataset v3 (Roboflow)",
+          "images": 12078,
+          "notes": "All 6 PPE classes, 640x640 auto-orient"
+        },
+        {
+          "name": "Safety Helmet Wearing Dataset (SHWD)",
+          "images": 5000,
+          "annotations": 19252,
+          "notes": "Pascal VOC XML converted; helmet-only class 3"
+        },
+        {
+          "name": "CHV Dataset (Chinese Helmet & Vest)",
+          "images": 1330,
+          "notes": "Class remapped: orig-1->Vest, orig-2..5->helmet; person ignored"
+        },
+        {
+          "name": "SH17 Industrial PPE Dataset",
+          "images": 3730,
+          "annotations": 11422,
+          "notes": "Direct 1:1 class mapping"
+        }
+      ],
+      "splits": {
+        "train": {"images": 16841, "labels": 16841, "annotations": 40810},
+        "val":   {"images": 3036,  "labels": 3036,  "annotations": 5899},
+        "test":  {"images": 2261,  "labels": 2261,  "annotations": 5299}
+      },
+      "totals": {"images": 22138, "annotations": 52008},
+      "classes": {
+        "0": "Gloves",
+        "1": "Vest",
+        "2": "goggles",
+        "3": "helmet",
+        "4": "mask",
+        "5": "safety_shoe"
+      },
+      "notes": "This is the primary training dataset for ppe_master.pt"
+    },
+    "hackathon_original": {
+      "path": "C:/hackthon-/runs/detect (validation runs only)",
+      "yaml": "N/A - original raw dataset not present in hackathon directory",
+      "source": "Roboflow PPE dataset (subset, used to train ppe_best.pt)",
+      "notes": "Dataset not available in C:/hackthon-; only model weights preserved",
+      "model_weights": "C:/hackthon-/ml/weights/ppe_best.pt",
+      "sha256": "07172EF3AE9E256C40A1FB0CE3EEFE5547D90170645AA73DDED0FFFC382CDB31",
+      "status": "PRESERVED - DO NOT DELETE"
+    }
+  },
+  "class_compatibility": {
+    "ppe_best.pt":   {"compatible": true, "notes": "Same 6-class canonical mapping"},
+    "ppe_master.pt": {"compatible": true, "notes": "Trained on canonical 6-class mapping"}
+  },
+  "notes": [
+    "Original source datasets (SHWD, CHV, SH17, Roboflow PPE v3) were used to build the master dataset.",
+    "Source datasets no longer available at original paths (C:/Model/Safety Helmet Wearing Dataset, etc.)",
+    "The merged master dataset at C:/Model/PPE_Master_System/dataset/ IS the authoritative dataset.",
+    "DO NOT merge ppe_best.pt and ppe_master.pt class IDs without verifying compatibility first.",
+    "Both models use identical 6-class canonical mapping - they are directly compatible."
+  ]
+}

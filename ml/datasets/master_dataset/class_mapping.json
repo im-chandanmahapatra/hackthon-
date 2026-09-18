@@ -1,0 +1,52 @@
+﻿{
+  "version": "1.0",
+  "description": "Canonical PPE class mapping used by all models in this project",
+  "source": "Derived from 4-dataset merge: Roboflow PPE v3, SHWD, CHV, SH17",
+  "total_images": 22138,
+  "total_annotations": 52008,
+  "canonical_classes": {
+    "0": "Gloves",
+    "1": "Vest",
+    "2": "goggles",
+    "3": "helmet",
+    "4": "mask",
+    "5": "safety_shoe"
+  },
+  "source_dataset_mappings": {
+    "roboflow_ppe_v3": {
+      "description": "Industrial PPE Safety Dataset (12,078 images)",
+      "mapping": {"0": "Gloves", "1": "Vest", "2": "goggles", "3": "helmet", "4": "mask", "5": "safety_shoe"},
+      "note": "Direct 1:1 mapping — identical class IDs"
+    },
+    "shwd": {
+      "description": "Safety Helmet Wearing Dataset (5,000 images, ~19,252 helmet annotations)",
+      "mapping": {"helmet_xml": "3"},
+      "note": "XML PASCAL VOC converted; only helmet class; mapped to class ID 3"
+    },
+    "chv": {
+      "description": "Chinese Helmet & Vest Dataset (1,330 images)",
+      "original": {"0": "person", "1": "vest", "2": "helmet_yel", "3": "helmet_whi", "4": "helmet_blu", "5": "helmet_red"},
+      "remapped": {"0": "IGNORED", "1": "1 (Vest)", "2": "3 (helmet)", "3": "3 (helmet)", "4": "3 (helmet)", "5": "3 (helmet)"},
+      "note": "Person class ignored; all helmet colours merged to class ID 3; vest to class ID 1"
+    },
+    "sh17": {
+      "description": "SH17 Industrial PPE Dataset (3,730 images)",
+      "mapping": {"0": "Gloves", "1": "Vest", "2": "goggles", "3": "helmet", "4": "mask", "5": "safety_shoe"},
+      "note": "Direct 1:1 mapping — identical class IDs"
+    }
+  },
+  "model_compatibility": {
+    "ppe_best.pt": {
+      "classes": {"0": "Gloves", "1": "Vest", "2": "goggles", "3": "helmet", "4": "mask", "5": "safety_shoe"},
+      "sha256": "07172EF3AE9E256C40A1FB0CE3EEFE5547D90170645AA73DDED0FFFC382CDB31",
+      "status": "PRESERVED — DO NOT DELETE",
+      "role": "legacy_fallback"
+    },
+    "ppe_master.pt": {
+      "classes": {"0": "Gloves", "1": "Vest", "2": "goggles", "3": "helmet", "4": "mask", "5": "safety_shoe"},
+      "sha256": "12B23C4CFA5B4FBE2932B977D7E1D26D8081E54044DEB18EAB9A3AFEACCA0663",
+      "status": "PRESERVED",
+      "role": "primary"
+    }
+  }
+}
