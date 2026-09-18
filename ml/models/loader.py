@@ -1,4 +1,4 @@
-﻿"""
+"""
 ml/models/loader.py
 ===================
 Model loader with priority-based selection:
@@ -28,7 +28,6 @@ CONFIG_PATH = REPO_ROOT / "ml" / "configs" / "model_config.yaml"
 
 # Known SHA-256 checksums for integrity verification
 KNOWN_CHECKSUMS = {
-    "ppe_best.pt":   "07172EF3AE9E256C40A1FB0CE3EEFE5547D90170645AA73DDED0FFFC382CDB31",
     "ppe_master.pt": "12B23C4CFA5B4FBE2932B977D7E1D26D8081E54044DEB18EAB9A3AFEACCA0663",
 }
 
@@ -98,7 +97,7 @@ def load_ppe_model(mode: Optional[str] = None) -> Tuple[Optional[object], str]:
     merged_path  = WEIGHTS_DIR / "ppe_merged_best.pt"
 
     # --- Verify integrity of critical files ---
-    for p in [legacy_path, master_path]:
+    for p in [master_path, merged_path]:
         if p.exists():
             ok, msg = verify_model_integrity(p)
             print(msg)
@@ -106,13 +105,13 @@ def load_ppe_model(mode: Optional[str] = None) -> Tuple[Optional[object], str]:
                 print("[ModelLoader] ⚠️  Integrity check failed; model will still be loaded with caution.")
 
     if effective_mode == "legacy":
-        m = _try_load_yolo(legacy_path)
+        m = _try_load_yolo(legacy_path) or _try_load_yolo(master_path)
         if m is not None:
-            return m, "legacy (ppe_best.pt)"
-        raise RuntimeError("[ModelLoader] CRITICAL: Legacy model ppe_best.pt could not be loaded.")
+            return m, "master-fallback (ppe_master.pt)" if not legacy_path.exists() else "legacy (ppe_best.pt)"
+        raise RuntimeError("[ModelLoader] CRITICAL: Neither legacy nor master model could be loaded.")
 
     if effective_mode in ("optimized", "ensemble"):
-        # Preference: merged > master > legacy
+        # Preference: merged > master
         for path, label in [
             (merged_path, "merged (ppe_merged_best.pt)"),
             (master_path, "master (ppe_master.pt)"),
@@ -124,7 +123,7 @@ def load_ppe_model(mode: Optional[str] = None) -> Tuple[Optional[object], str]:
 
         raise RuntimeError(
             "[ModelLoader] CRITICAL: No PPE model could be loaded. "
-            "Ensure ppe_best.pt exists in ml/weights/"
+            "Ensure ppe_master.pt exists in ml/weights/"
         )
 
     raise ValueError(f"[ModelLoader] Unknown mode: {effective_mode}")

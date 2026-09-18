@@ -1,4 +1,4 @@
-﻿# =============================================================================
+# =============================================================================
 # Argus PPE Detection System — Model Configuration
 # =============================================================================
 # mode: optimized | legacy | ensemble
@@ -6,15 +6,12 @@ mode: optimized
 
 # Model Weights
 models:
-  legacy:
-    path: ml/weights/ppe_best.pt
-    desc: "Original hackathon PPE model (DO NOT DELETE)"
   master:
     path: ml/weights/ppe_master.pt
-    desc: "Master PPE model — 22,138 image unified corpus"
+    desc: "Master PPE model — 22,138 image unified corpus (Author: sakashdora)"
   merged:
     path: ml/weights/ppe_merged_best.pt
-    desc: "Retrained model from clean merged master dataset"
+    desc: "Retrained/Fine-tuned model from full merged master dataset"
     optional: true
 
 # Inference Parameters

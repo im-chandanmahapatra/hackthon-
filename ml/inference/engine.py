@@ -1,4 +1,4 @@
-﻿"""
+"""
 ml/inference/engine.py — PATCHED
 Uses batch tensor access (r.boxes.xyxy.cpu().numpy()) instead of
 per-box iteration to avoid PyTorch 2.9 tensor indexing deprecation.
@@ -120,14 +120,12 @@ class InferenceEngine:
                 return m, "legacy (ppe_best.pt)"
             raise RuntimeError("[InferenceEngine] CRITICAL: ppe_best.pt missing and mode=legacy.")
         if mode == "ensemble":
-            primary   = (_try_load("ppe_merged_best.pt")
-                         or _try_load("ppe_master.pt")
-                         or _try_load("ppe_best.pt"))
-            secondary = _try_load("ppe_best.pt") if primary else None
+            primary   = (_try_load("ppe_merged_best.pt") or _try_load("ppe_master.pt"))
+            secondary = _try_load("ppe_master.pt") if primary and primary != _try_load("ppe_master.pt") else None
             if primary is None:
-                raise RuntimeError("[InferenceEngine] No PPE model for ensemble.")
+                raise RuntimeError("[InferenceEngine] No PPE model available for ensemble.")
             if secondary is None:
-                return primary, "ensemble-single"
+                return primary, "optimized (single model)"
             try:
                 from ml.models.ensemble import EnsembleModel
                 cfg_e = self._cfg.get("ensemble", {})
@@ -138,7 +136,7 @@ class InferenceEngine:
                     iou_thr=cfg_e.get("iou_threshold", 0.55),
                     skip_box_thr=cfg_e.get("skip_box_threshold", 0.30),
                 )
-                return ens, "ensemble (master+legacy WBF)"
+                return ens, "ensemble (master+merged WBF)"
             except Exception as e:
                 print(f"[InferenceEngine] Ensemble init error: {e}; using primary.")
                 return primary, "ensemble-fallback"
@@ -146,7 +144,6 @@ class InferenceEngine:
         for wname, label in [
             ("ppe_merged_best.pt", "merged (ppe_merged_best.pt)"),
             ("ppe_master.pt",      "master (ppe_master.pt)"),
-            ("ppe_best.pt",        "legacy-fallback (ppe_best.pt)"),
         ]:
             m = _try_load(wname)
             if m:

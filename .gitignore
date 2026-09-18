@@ -43,6 +43,10 @@ ml/weights/*.onnx
 runs/
 ml/experiments/training_runs/
 
+# Large local raw datasets (8.6GB linked corpus)
+ml/datasets/master_dataset/images/
+ml/datasets/master_dataset/labels/
+
 # IDE & OS
 .vscode/
 .idea/

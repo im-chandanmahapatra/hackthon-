@@ -1,4 +1,4 @@
-﻿"""
+"""
 ml/inference_wrapper.py
 ========================
 Public API wrapper — BACKWARD COMPATIBLE.
@@ -84,9 +84,9 @@ class _LegacyInferenceEngine:
             except Exception as e:
                 print(f"[LegacyEngine] Error loading person model: {e}")
 
-        ppe_weights = WEIGHTS_DIR / "ppe_master.pt"
+        ppe_weights = WEIGHTS_DIR / "ppe_merged_best.pt"
         if not ppe_weights.exists():
-            ppe_weights = WEIGHTS_DIR / "ppe_best.pt"
+            ppe_weights = WEIGHTS_DIR / "ppe_master.pt"
         if not ppe_weights.exists():
             ppe_weights = WEIGHTS_DIR / "best.pt"
         if ppe_weights.exists():

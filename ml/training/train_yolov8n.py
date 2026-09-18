@@ -93,8 +93,8 @@ def main():
     if args.weights:
         init_weights = Path(args.weights)
     else:
-        # Priority: ppe_master > ppe_best > yolov8n.pt
-        for candidate in ["ppe_master.pt", "ppe_best.pt", "yolov8n.pt"]:
+        # Priority: ppe_master > ppe_merged_best > yolov8n.pt
+        for candidate in ["ppe_master.pt", "ppe_merged_best.pt", "yolov8n.pt"]:
             cand_path = WEIGHTS_DIR / candidate
             if cand_path.exists():
                 init_weights = cand_path
@@ -108,7 +108,7 @@ def main():
 
     # Safety: record checksums of models we must NOT overwrite
     protected = {}
-    for pname in ["ppe_best.pt", "ppe_master.pt"]:
+    for pname in ["ppe_master.pt"]:
         ppath = WEIGHTS_DIR / pname
         if ppath.exists():
             h = hashlib.sha256()
