@@ -1,14 +1,19 @@
 {
   "results": [
     {
-      "test": "integrity:ppe_best.pt",
-      "status": "PASS",
-      "detail": "SHA256=07172EF3AE9E256C..."
-    },
-    {
       "test": "integrity:ppe_master.pt",
       "status": "PASS",
       "detail": "SHA256=12B23C4CFA5B4FBE..."
+    },
+    {
+      "test": "integrity:ppe_merged_best.pt",
+      "status": "PASS",
+      "detail": "Size: 49.6 MB (Active YOLOv8m)"
+    },
+    {
+      "test": "load:ppe_merged_best.pt",
+      "status": "PASS",
+      "detail": "Classes: ['Gloves', 'Vest', 'goggles', 'helmet', 'mask', 'safety_shoe']"
     },
     {
       "test": "load:ppe_master.pt",
@@ -16,14 +21,9 @@
       "detail": "Classes: ['Gloves', 'Vest', 'goggles', 'helmet', 'mask', 'safety_shoe']"
     },
     {
-      "test": "load:ppe_best.pt",
-      "status": "PASS",
-      "detail": "Classes: ['Gloves', 'Vest', 'goggles', 'helmet', 'mask', 'safety_shoe']"
-    },
-    {
       "test": "InferenceEngine:init",
       "status": "PASS",
-      "detail": "Mode: master (ppe_master.pt)"
+      "detail": "Mode: merged (ppe_merged_best.pt)"
     },
     {
       "test": "api:run_ppe",
@@ -41,9 +41,9 @@
       "detail": "Type: dict"
     },
     {
-      "test": "video:pipeline",
-      "status": "PASS",
-      "detail": "6 frames, 6.1 FPS"
+      "test": "video:file_exists",
+      "status": "WARN",
+      "detail": "test_clip.mp4 not found"
     },
     {
       "test": "db:schema",
@@ -53,12 +53,12 @@
     {
       "test": "perf:run_ppe",
       "status": "PASS",
-      "detail": "Mean=116.8ms FPS=8.6"
+      "detail": "Mean=413.4ms FPS=2.4"
     }
   ],
   "summary": {
     "total": 11,
-    "passed": 11,
+    "passed": 10,
     "failed": 0
   }
 }

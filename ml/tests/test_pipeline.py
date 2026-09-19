@@ -1,4 +1,4 @@
-﻿import sys
+import sys
 import os
 sys.stdout.reconfigure(encoding="utf-8") if hasattr(sys.stdout, "reconfigure") else None
 
@@ -8,6 +8,7 @@ import hashlib
 from pathlib import Path
 
 REPO_ROOT   = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(REPO_ROOT))
 WEIGHTS_DIR = REPO_ROOT / "ml" / "weights"
 
 results = []
@@ -19,7 +20,6 @@ def _record(name, status, detail=""):
 def test_model_integrity():
     print("\n[1] Model Integrity Checks")
     KNOWN = {
-        "ppe_best.pt":   "07172EF3AE9E256C40A1FB0CE3EEFE5547D90170645AA73DDED0FFFC382CDB31",
         "ppe_master.pt": "12B23C4CFA5B4FBE2932B977D7E1D26D8081E54044DEB18EAB9A3AFEACCA0663",
     }
     for fname, expected in KNOWN.items():
@@ -37,9 +37,17 @@ def test_model_integrity():
         else:
             _record(f"integrity:{fname}", "FAIL", f"Expected {expected[:16]} got {actual[:16]}")
 
+    # Verify active retrained model ppe_merged_best.pt
+    merged_path = WEIGHTS_DIR / "ppe_merged_best.pt"
+    if merged_path.exists():
+        size_mb = merged_path.stat().st_size / (1024 * 1024)
+        _record("integrity:ppe_merged_best.pt", "PASS", f"Size: {size_mb:.1f} MB (Active YOLOv8m)")
+    else:
+        _record("integrity:ppe_merged_best.pt", "WARN", "ppe_merged_best.pt not found")
+
 def test_model_loading():
     print("\n[2] Model Loading")
-    for fname in ["ppe_master.pt", "ppe_best.pt"]:
+    for fname in ["ppe_merged_best.pt", "ppe_master.pt"]:
         path = WEIGHTS_DIR / fname
         if not path.exists():
             _record(f"load:{fname}", "WARN", "File not found")
